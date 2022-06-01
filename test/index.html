@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.staticfile.org/MaterialDesign-Webfont/6.6.96/css/materialdesignicons.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.staticfile.org/vuetify/2.6.5/vuetify.min.css"
+      rel="stylesheet"
+    />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app">
+      <py-app uri="ws://127.0.0.1:8080/ws/browser"></py-app>
+    </div>
+
+    <script src="https://cdn.staticfile.org/vue/2.6.9/vue.js"></script>
+    <script src="https://cdn.staticfile.org/vuetify/2.6.5/vuetify.js"></script>
+    <script src="../dist/pywui.umd.js"></script>
+    <script>
+      
+      const app = new Vue({
+        el: "#app",
+        vuetify: new Vuetify(),
+        pinia:pywui.init(Vue).pinia
+      });
+    </script>
+  </body>
+</html>
