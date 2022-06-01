@@ -4,5 +4,4 @@ export default defineStore('dataStore',{
     state:()=>({
         datas:{}
     }),
-
 })

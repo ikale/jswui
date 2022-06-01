@@ -4,10 +4,8 @@
 
 # l使用
 ```
-// html
-<div id="app">
-    <py-app uri="ws://xxxx"></py-app>
-</div>
+// init返回一个对象，里面包含了pinia的实例，解构出pinia实例添加至vue实例中
+pywui.init(Vue)
 
 
 // script
@@ -58,6 +56,32 @@ new Vue({
 ```
 __$xxx$
 ```
+
+# 操作接口
+### 1.通过ws服务器通信
+```
+// html
+<div id="app">
+    <py-app uri="ws://xxxx"></py-app>
+</div>
+```
+
+### 2.通过js
+```
+// 更新ui
+pywui.updateUi(uidata)
+
+// 更新数据
+pywui.updateData(rawdata)
+
+// 获取当前ui
+pywui.getUidata()
+
+// 获取当前data
+pywui.getRawdata()
+```
+
+
 
 # 服务器
 

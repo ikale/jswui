@@ -1,6 +1,7 @@
 import PyApp from "./py-app/index.vue"
 import { createPinia,PiniaVuePlugin } from 'pinia'
 
+
 const coms = [PyApp]
 
 const install = function(Vue){
@@ -23,3 +24,29 @@ export const init= function(Vue){
 }
 
 export const version = '0.0.1'
+
+
+
+import uistore from './store/uistore.js'
+import dataStore from './store/dataStore'
+
+
+export const updateUi = function(uidata){
+    const useUistore = uistore()
+    useUistore.uidatas = uidata
+}
+
+export const updateData = function(rawdata){
+  const useDataStore = dataStore()
+  useDataStore.datas = rawdata
+}
+
+export const getUidata = function(){
+  const useUistore = uistore()
+  return useUistore.uidatas
+}
+
+export const getRawdata = function(){
+  const useDataStore = dataStore()
+  return useDataStore.datas
+}

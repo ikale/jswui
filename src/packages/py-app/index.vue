@@ -1,9 +1,6 @@
 <template>
     <v-app>
         <py-zero></py-zero>
-        <!-- <v-text-field ref="bb">
-        <template v-slot:append>12321</template>
-        </v-text-field> -->
     </v-app>
 </template>
 

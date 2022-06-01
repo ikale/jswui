@@ -95,6 +95,7 @@ function toCreateVnode(d,h,opts,slotname=null){
 //     }
 // }
 
+
 import { mapState} from 'pinia'
 import uistore from '../store/uistore.js'
 import dataStore from '../store/dataStore'
@@ -124,7 +125,7 @@ export default {
                 }
             })
         }else{
-             console.error(`Please in "<py-app uri='your ws addr'>" websocket address specified in the tag!`)
+             console.warn(`Please in "<py-app uri='your ws addr'>" websocket address specified in the tag!`)
         }
     },
     computed: {
