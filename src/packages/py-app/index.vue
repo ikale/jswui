@@ -1,6 +1,12 @@
 <template>
     <v-app>
         <py-zero></py-zero>
+        <v-text-field
+            :value="123456"
+            label="Regular"
+            solo
+            clearable
+          ></v-text-field>
     </v-app>
 </template>
 
@@ -20,7 +26,7 @@ export default {
     uri:String
   },
   data: () => ({
-    opts:{tag:'div',props:{'class':'abc'},solts:{default:['没有数据']}}
+    message1:"abc"
   }),
   computed: {
     ...mapState(uistore,['uidatas'])

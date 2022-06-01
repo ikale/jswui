@@ -11,7 +11,7 @@ function toCoverData(d,v){
 }
 
 
-function toCreateVnode(d,h,opts,slotname=null){
+function toCreateVnode(c,d,h,opts,slotname=null){
     let {tag,props,events,solts} = opts
     tag = typeof tag === "string"?tag.trim():null
     tag = !tag&&slotname?'template':tag
@@ -33,6 +33,7 @@ function toCreateVnode(d,h,opts,slotname=null){
         for (const key in props) {
             // 处理props
             p[key] =toCoverData(d,props[key])
+            if(key==="value") console.log("value",p[key])
         }
 
         solts = (solts && solts.constructor === Object)?solts:null        
@@ -42,7 +43,16 @@ function toCreateVnode(d,h,opts,slotname=null){
             // 事件处理
             let e ={}
             for (const key in events) {
-                e[key] = (e)=>console.log(e)
+                if(key=="input"){
+                    e[key] = function(value){
+                        console.log("input",value)
+                        c.$emit('input', value)
+                    }
+                }
+                else{
+                    e[key] = (e)=>console.log(e)
+                }
+                
             }
             p['on'] = e
         }
@@ -56,9 +66,9 @@ function toCreateVnode(d,h,opts,slotname=null){
                 for (let i = 0; i < solts[key].length; i++) {
                     const _opts = solts[key][i];
                     if(key=="default"){
-                        child.push(toCreateVnode(d,h,_opts))
+                        child.push(toCreateVnode(c,d,h,_opts))
                     }else{
-                        child.push(toCreateVnode(d,h,_opts,key))
+                        child.push(toCreateVnode(c,d,h,_opts,key))
                     }
                 }
             }
@@ -134,7 +144,7 @@ export default {
       },
     render(h) {
         // console.log("触发渲染更新",this.datas)
-        const v =toCreateVnode(this.datas,h,this.uidatas)
+        const v =toCreateVnode(this,this.datas,h,this.uidatas)
         // console.log("vnode",v)
         return v
     },
