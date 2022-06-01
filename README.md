@@ -1,24 +1,11 @@
-# jswui2
+# jswui
 
-## Project setup
-```
-npm install
-```
-
-### Compiles and hot-reloads for development
+# 进入开发模式
 ```
 npm run serve
 ```
 
-### Compiles and minifies for production
+# 打包
 ```
-npm run build
+npm run package
 ```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
