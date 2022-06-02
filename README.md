@@ -82,6 +82,31 @@ pywui.getRawdata()
 ```
 
 
+# 与ws服务器通信
+
+### valueUpdate
+```
+//payload
+{
+    type:"valueUpdate",
+    msg:{
+        id,
+        value:newdata
+    }
+}
+```
+
+### uiEvent
+```
+//payload
+{
+    type:'uiEvent',
+    msg:{
+        eventName,
+    }
+}
+```
+
 
 # 开发模式
 

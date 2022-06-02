@@ -60,7 +60,7 @@ export const getRawdata = function(){
 }
 
 
-import createTemplate from "./utils/handlerTag.js"
+import InitTemplate from "./utils/handlerTag.js"
 
 
 let opts = {
@@ -90,5 +90,5 @@ let opts = {
     }
 }
   
-  console.log(createTemplate(opts))
+  console.log("index.js",InitTemplate(opts))
   

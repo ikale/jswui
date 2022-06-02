@@ -1,3 +1,12 @@
+
+
+function getEvent(eventName){
+    return function(e){
+        console.log("触发事件",eventName,e)
+    }
+}
+
+
 function toCoverData(v){
     /**
      * 数据绑定
@@ -27,7 +36,7 @@ function createProps(props){
             _key = isbind?`${key}`:key
         }else{
             _key = isbind?`:${key}`:key
-        }        
+        }
         if (typeof value ==="string")value = `'${value}'`
         s+=`${_key}=${value} `
     }
@@ -35,18 +44,19 @@ function createProps(props){
 }
 
 
-function createEvent(events){
+function createEvent(container,events){
     if(!events) return ""
     let s = ""
     for (const key in events) {
-        const value = events[key];
-        s+=`@${key}='${value}' `
+        const eventName = events[key];
+        s+=`@${key}='${eventName}' `
+        container['eventFnc'][eventName] = getEvent(eventName)
     }
     return s
 }
 
 
-function createTemplate(opts,slotName=null){
+function createTemplate(container,opts,slotName=null){
     let {tag,props,solts,events,slotValue} = opts
 
     let _slotMark =""
@@ -67,7 +77,7 @@ function createTemplate(opts,slotName=null){
         }
         else if(Array.isArray(solts)){
             for (let i = 0; i < solts.length; i++) {
-                child+=createTemplate(solts[i])
+                child+=createTemplate(container,solts[i])
             }
         }
         if(solts.constructor === Object){
@@ -75,7 +85,7 @@ function createTemplate(opts,slotName=null){
                 let arr = solts[slotName]
                 if(Array.isArray(arr)){
                     for (let i = 0; i < arr.length; i++) {                        
-                        child+=createTemplate(arr[i],slotName)
+                        child+=createTemplate(container,arr[i],slotName)
                     }
                 }
             }
@@ -83,7 +93,7 @@ function createTemplate(opts,slotName=null){
     }
 
     if(tag){
-        return `<${tag} ${createProps(props)} ${createEvent(events)} ${_slotMark}>${child}</${tag}>`
+        return `<${tag} ${createProps(props)} ${createEvent(container,events)} ${_slotMark}>${child}</${tag}>`
     }else{
         if(typeof opts==="string"){            
             let {value,isbind} = toCoverData(opts)
@@ -97,8 +107,18 @@ function createTemplate(opts,slotName=null){
 
 
 
-export default createTemplate
+const InitTemplate = function(uidatas){
+    let container = {
+        eventFnc:{},
+        template:""
+    }
+    let template = createTemplate(container,uidatas)
+    container.template = template
 
+    return container
+}
+
+export default InitTemplate
 
 // opts = {
 //     tag:"div",

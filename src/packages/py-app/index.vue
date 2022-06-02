@@ -2,12 +2,12 @@
     <v-app>
         <py-zero></py-zero>
         <!-- <v-text-field
-            v-model="datas.__$0$"
+            v-model="__$666$.value"
             label="Regular"
             solo
             clearable
           ></v-text-field>
-          {{datas.__$0$}} -->
+          {{__$666$.value}} -->
     </v-app>
 </template>
 
@@ -31,7 +31,7 @@ export default {
   }),
   computed: {
     ...mapState(uistore,['uidatas']),
-    ...mapState(dataStore,['datas'])
+    ...mapState(dataStore,['__$666$'])
   },
   created() {
     const useUistore = uistore()
