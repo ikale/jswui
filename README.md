@@ -32,6 +32,7 @@ new Vue({
     'tag':"div",
     'props':{'class':"__$1$", 'age':"__$0$"},
     # 'events':{"click":"onclick"},
+    slotValue:'',
     'solts':{
         'default':[
             "输入点能量吧->",
@@ -44,7 +45,8 @@ new Vue({
                 'solts':{
                     'append':['我不知道'],
                     'prepend':["爱是什么","__$0$"]
-                }
+                },
+                slotValue:'',
             }
         ]
     }
