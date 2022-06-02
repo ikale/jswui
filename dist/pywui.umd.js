@@ -2560,66 +2560,6 @@ module.exports = {
 
 /***/ }),
 
-/***/ 6091:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-var PROPER_FUNCTION_NAME = (__webpack_require__(6530).PROPER);
-var fails = __webpack_require__(7293);
-var whitespaces = __webpack_require__(1361);
-
-var non = '\u200B\u0085\u180E';
-
-// check that a method works with the correct list
-// of whitespaces and has a correct name
-module.exports = function (METHOD_NAME) {
-  return fails(function () {
-    return !!whitespaces[METHOD_NAME]()
-      || non[METHOD_NAME]() !== non
-      || (PROPER_FUNCTION_NAME && whitespaces[METHOD_NAME].name !== METHOD_NAME);
-  });
-};
-
-
-/***/ }),
-
-/***/ 3111:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-var uncurryThis = __webpack_require__(1702);
-var requireObjectCoercible = __webpack_require__(4488);
-var toString = __webpack_require__(1340);
-var whitespaces = __webpack_require__(1361);
-
-var replace = uncurryThis(''.replace);
-var whitespace = '[' + whitespaces + ']';
-var ltrim = RegExp('^' + whitespace + whitespace + '*');
-var rtrim = RegExp(whitespace + whitespace + '*$');
-
-// `String.prototype.{ trim, trimStart, trimEnd, trimLeft, trimRight }` methods implementation
-var createMethod = function (TYPE) {
-  return function ($this) {
-    var string = toString(requireObjectCoercible($this));
-    if (TYPE & 1) string = replace(string, ltrim, '');
-    if (TYPE & 2) string = replace(string, rtrim, '');
-    return string;
-  };
-};
-
-module.exports = {
-  // `String.prototype.{ trimLeft, trimStart }` methods
-  // https://tc39.es/ecma262/#sec-string.prototype.trimstart
-  start: createMethod(1),
-  // `String.prototype.{ trimRight, trimEnd }` methods
-  // https://tc39.es/ecma262/#sec-string.prototype.trimend
-  end: createMethod(2),
-  // `String.prototype.trim` method
-  // https://tc39.es/ecma262/#sec-string.prototype.trim
-  trim: createMethod(3)
-};
-
-
-/***/ }),
-
 /***/ 6532:
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
@@ -2916,16 +2856,6 @@ module.exports = function (name) {
 
 /***/ }),
 
-/***/ 1361:
-/***/ (function(module) {
-
-// a string of all valid unicode whitespaces
-module.exports = '\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u2000\u2001\u2002' +
-  '\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFF';
-
-
-/***/ }),
-
 /***/ 9191:
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
@@ -2996,6 +2926,77 @@ module.exports = function (FULL_NAME, wrapper, FORCED, IS_AGGREGATE_ERROR) {
 
   return WrappedError;
 };
+
+
+/***/ }),
+
+/***/ 2222:
+/***/ (function(__unused_webpack_module, __unused_webpack_exports, __webpack_require__) {
+
+"use strict";
+
+var $ = __webpack_require__(2109);
+var global = __webpack_require__(7854);
+var fails = __webpack_require__(7293);
+var isArray = __webpack_require__(3157);
+var isObject = __webpack_require__(111);
+var toObject = __webpack_require__(7908);
+var lengthOfArrayLike = __webpack_require__(6244);
+var createProperty = __webpack_require__(6135);
+var arraySpeciesCreate = __webpack_require__(5417);
+var arrayMethodHasSpeciesSupport = __webpack_require__(1194);
+var wellKnownSymbol = __webpack_require__(5112);
+var V8_VERSION = __webpack_require__(7392);
+
+var IS_CONCAT_SPREADABLE = wellKnownSymbol('isConcatSpreadable');
+var MAX_SAFE_INTEGER = 0x1FFFFFFFFFFFFF;
+var MAXIMUM_ALLOWED_INDEX_EXCEEDED = 'Maximum allowed index exceeded';
+var TypeError = global.TypeError;
+
+// We can't use this feature detection in V8 since it causes
+// deoptimization and serious performance degradation
+// https://github.com/zloirock/core-js/issues/679
+var IS_CONCAT_SPREADABLE_SUPPORT = V8_VERSION >= 51 || !fails(function () {
+  var array = [];
+  array[IS_CONCAT_SPREADABLE] = false;
+  return array.concat()[0] !== array;
+});
+
+var SPECIES_SUPPORT = arrayMethodHasSpeciesSupport('concat');
+
+var isConcatSpreadable = function (O) {
+  if (!isObject(O)) return false;
+  var spreadable = O[IS_CONCAT_SPREADABLE];
+  return spreadable !== undefined ? !!spreadable : isArray(O);
+};
+
+var FORCED = !IS_CONCAT_SPREADABLE_SUPPORT || !SPECIES_SUPPORT;
+
+// `Array.prototype.concat` method
+// https://tc39.es/ecma262/#sec-array.prototype.concat
+// with adding support of @@isConcatSpreadable and @@species
+$({ target: 'Array', proto: true, arity: 1, forced: FORCED }, {
+  // eslint-disable-next-line no-unused-vars -- required for `.length`
+  concat: function concat(arg) {
+    var O = toObject(this);
+    var A = arraySpeciesCreate(O, 0);
+    var n = 0;
+    var i, k, length, len, E;
+    for (i = -1, length = arguments.length; i < length; i++) {
+      E = i === -1 ? O : arguments[i];
+      if (isConcatSpreadable(E)) {
+        len = lengthOfArrayLike(E);
+        if (n + len > MAX_SAFE_INTEGER) throw TypeError(MAXIMUM_ALLOWED_INDEX_EXCEEDED);
+        for (k = 0; k < len; k++, n++) if (k in E) createProperty(A, n, E[k]);
+      } else {
+        if (n >= MAX_SAFE_INTEGER) throw TypeError(MAXIMUM_ALLOWED_INDEX_EXCEEDED);
+        createProperty(A, n++, E);
+      }
+    }
+    A.length = n;
+    return A;
+  }
+});
 
 
 /***/ }),
@@ -3584,26 +3585,6 @@ $({ target: 'String', proto: true, forced: !MDN_POLYFILL_BUG && !CORRECT_IS_REGE
 
 /***/ }),
 
-/***/ 3210:
-/***/ (function(__unused_webpack_module, __unused_webpack_exports, __webpack_require__) {
-
-"use strict";
-
-var $ = __webpack_require__(2109);
-var $trim = (__webpack_require__(3111).trim);
-var forcedStringTrimMethod = __webpack_require__(6091);
-
-// `String.prototype.trim` method
-// https://tc39.es/ecma262/#sec-string.prototype.trim
-$({ target: 'String', proto: true, forced: forcedStringTrimMethod('trim') }, {
-  trim: function trim() {
-    return $trim(this);
-  }
-});
-
-
-/***/ }),
-
 /***/ 4032:
 /***/ (function(__unused_webpack_module, __unused_webpack_exports, __webpack_require__) {
 
@@ -4089,6 +4070,7 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__.d(__webpack_exports__, {
   "getRawdata": function() { return /* reexport */ getRawdata; },
   "getUidata": function() { return /* reexport */ getUidata; },
+  "getVue": function() { return /* reexport */ getVue; },
   "init": function() { return /* reexport */ init; },
   "updateData": function() { return /* reexport */ updateData; },
   "updateUi": function() { return /* reexport */ updateUi; },
@@ -4126,7 +4108,7 @@ var es_object_to_string = __webpack_require__(1539);
 var web_dom_collections_for_each = __webpack_require__(4747);
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.function.name.js
 var es_function_name = __webpack_require__(8309);
-;// CONCATENATED MODULE: ./node_modules/@vue/vue-loader-v15/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/@vue/vue-loader-v15/lib/index.js??vue-loader-options!./src/packages/py-app/index.vue?vue&type=template&id=63074863&
+;// CONCATENATED MODULE: ./node_modules/@vue/vue-loader-v15/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/@vue/vue-loader-v15/lib/index.js??vue-loader-options!./src/packages/py-app/index.vue?vue&type=template&id=496e2cd9&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('v-app',[_c('py-zero')],1)}
 var staticRenderFns = []
 
@@ -4191,16 +4173,6 @@ function _objectSpread2(target) {
 
   return target;
 }
-// EXTERNAL MODULE: ./node_modules/core-js/modules/es.regexp.exec.js
-var es_regexp_exec = __webpack_require__(4916);
-// EXTERNAL MODULE: ./node_modules/core-js/modules/es.string.split.js
-var es_string_split = __webpack_require__(3123);
-// EXTERNAL MODULE: ./node_modules/core-js/modules/es.string.starts-with.js
-var es_string_starts_with = __webpack_require__(6755);
-// EXTERNAL MODULE: ./node_modules/core-js/modules/es.string.ends-with.js
-var es_string_ends_with = __webpack_require__(7852);
-// EXTERNAL MODULE: ./node_modules/core-js/modules/es.string.trim.js
-var es_string_trim = __webpack_require__(3210);
 // EXTERNAL MODULE: external {"commonjs":"vue","commonjs2":"vue","root":"Vue"}
 var external_commonjs_vue_commonjs2_vue_root_Vue_ = __webpack_require__(7203);
 var external_commonjs_vue_commonjs2_vue_root_Vue_default = /*#__PURE__*/__webpack_require__.n(external_commonjs_vue_commonjs2_vue_root_Vue_);
@@ -8208,104 +8180,250 @@ function useWebsocket(uri) {
 }
 
 
-;// CONCATENATED MODULE: ./src/packages/py-app/zero.js
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.regexp.exec.js
+var es_regexp_exec = __webpack_require__(4916);
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.string.split.js
+var es_string_split = __webpack_require__(3123);
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.string.starts-with.js
+var es_string_starts_with = __webpack_require__(6755);
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.string.ends-with.js
+var es_string_ends_with = __webpack_require__(7852);
+// EXTERNAL MODULE: ./node_modules/core-js/modules/es.array.concat.js
+var es_array_concat = __webpack_require__(2222);
+;// CONCATENATED MODULE: ./src/packages/utils/handlerTag.js
 
 
 
 
 
 
-
-function toCoverData(d, v) {
+function toCoverData(v) {
   /**
    * 数据绑定
    * 使用 __$name$ 的格式字符串 将自动映射到 dataStore上面
    * 不符合规则的数据，将原样返回
    */
+  var value = v;
+  var isbind = false;
+
   if (typeof v === "string" && v.split(" ").length == 1 && v.startsWith("__$") && v.endsWith("$")) {
-    return d[v];
+    value = "datas.".concat(v);
+    isbind = true;
   }
 
-  return v;
+  return {
+    value: value,
+    isbind: isbind
+  };
 }
 
-function toCreateVnode(d, h, opts) {
-  var slotname = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+function createProps(props) {
+  if (!props) return "";
+  var s = "";
+
+  for (var key in props) {
+    var _toCoverData = toCoverData(props[key]),
+        value = _toCoverData.value,
+        isbind = _toCoverData.isbind;
+
+    var _key = "";
+
+    if (key.startsWith("v-")) {
+      _key = isbind ? "".concat(key) : key;
+    } else {
+      _key = isbind ? ":".concat(key) : key;
+    }
+
+    if (typeof value === "string") value = "'".concat(value, "'");
+    s += "".concat(_key, "=").concat(value, " ");
+  }
+
+  return s;
+}
+
+function createEvent(events) {
+  if (!events) return "";
+  var s = "";
+
+  for (var key in events) {
+    var value = events[key];
+    s += "@".concat(key, "='").concat(value, "' ");
+  }
+
+  return s;
+}
+
+function createTemplate(opts) {
+  var slotName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
   var tag = opts.tag,
       props = opts.props,
+      solts = opts.solts,
       events = opts.events,
-      solts = opts.solts;
-  tag = typeof tag === "string" ? tag.trim() : null;
-  tag = !tag && slotname ? 'template' : tag;
+      slotValue = opts.slotValue;
+  var _slotMark = "";
 
-  if (slotname) {
-    // 有指定插槽
-    if (!opts) {
-      return h(tag, {
-        slot: slotname
-      }, []);
-    } else if (opts.constructor !== Object) {
-      return h(tag, {
-        slot: slotname
-      }, toCoverData(d, opts));
+  if (slotName) {
+    if (slotValue) {
+      _slotMark = "v-slot:".concat(slotName, "='").concat(slotValue, "'");
+    } else {
+      _slotMark = "v-slot:".concat(slotName);
+    }
+  }
+
+  var child = "";
+
+  if (solts) {
+    if (typeof solts === "string") {
+      var _toCoverData2 = toCoverData(solts),
+          value = _toCoverData2.value,
+          isbind = _toCoverData2.isbind;
+
+      if (isbind) value = "{{".concat(value, "}}");
+      child = value;
+    } else if (Array.isArray(solts)) {
+      for (var i = 0; i < solts.length; i++) {
+        child += createTemplate(solts[i]);
+      }
+    }
+
+    if (solts.constructor === Object) {
+      for (var _slotName in solts) {
+        var arr = solts[_slotName];
+
+        if (Array.isArray(arr)) {
+          for (var _i = 0; _i < arr.length; _i++) {
+            child += createTemplate(arr[_i], _slotName);
+          }
+        }
+      }
     }
   }
 
   if (tag) {
-    // console.log("id:",id)
-    props = props && props.constructor === Object ? props : {};
-    var p = {};
-
-    for (var key in props) {
-      // 处理props
-      p[key] = toCoverData(d, props[key]);
-    }
-
-    solts = solts && solts.constructor === Object ? solts : null;
-    events = events && events.constructor === Object ? events : null;
-
-    if (events) {
-      // 事件处理
-      var e = {};
-
-      for (var _key in events) {
-        e[_key] = function (e) {
-          return console.log(e);
-        };
-      }
-
-      p['on'] = e;
-    }
-
-    if (slotname) p['slot'] = slotname; // 添加slot名称
-
-    if (solts) {
-      // 插槽处理
-      var child = [];
-
-      for (var _key2 in solts) {
-        if (!Array.isArray(solts[_key2])) continue;
-
-        for (var i = 0; i < solts[_key2].length; i++) {
-          var _opts = solts[_key2][i];
-
-          if (_key2 == "default") {
-            child.push(toCreateVnode(d, h, _opts));
-          } else {
-            child.push(toCreateVnode(d, h, _opts, _key2));
-          }
-        }
-      } // console.log("子元素",child)
-
-
-      return h(tag, p, child);
-    } else {
-      return h(tag, p);
-    }
+    return "<".concat(tag, " ").concat(createProps(props), " ").concat(createEvent(events), " ").concat(_slotMark, ">").concat(child, "</").concat(tag, ">");
   } else {
-    return toCoverData(d, opts);
+    if (typeof opts === "string") {
+      var _toCoverData3 = toCoverData(opts),
+          _value = _toCoverData3.value,
+          _isbind = _toCoverData3.isbind;
+
+      if (_isbind) return "{{".concat(_value, "}}");
+      return "".concat(opts);
+    }
+
+    return "".concat(opts);
   }
-} // const opts = {
+}
+
+/* harmony default export */ var handlerTag = (createTemplate); // opts = {
+//     tag:"div",
+//     props:{name:"__$ikale$", ":age":18},
+//     events:{"click":"onclick"},
+//     slotValue:'',
+//     
+//     solts:{
+//         default:[
+//              "这是一段文本",
+//             {
+//                 tag:"div",
+//                 props:{name:"chao", ":age":25},
+//                 events:{"click":"onclick"},
+//                 slotValue:'',
+//             }
+//         ],
+//          append:[
+//              {
+//                  tag:"div",
+//                  props:{name:"chao", ":age":25},
+//                  events:{"click":"onclick"},
+//                  slotValue:'{name,attr}'
+//              },
+//          ]
+//     }
+// }
+// 备份vnode 创建
+// function toCoverData(d,v){
+//     /**
+//      * 数据绑定
+//      * 使用 __$name$ 的格式字符串 将自动映射到 dataStore上面
+//      * 不符合规则的数据，将原样返回
+//      */ 
+//     if(typeof v==="string"&&v.split(" ").length==1&&v.startsWith("__$")&&v.endsWith("$")){
+//         return d[v]
+//     }
+//     return v
+// }
+// function toCreateVnode(c,d,h,opts,slotname=null){
+//     let {tag,props,events,solts} = opts
+//     tag = typeof tag === "string"?tag.trim():null
+//     tag = !tag&&slotname?'template':tag
+//     if(slotname){
+//         // 有指定插槽
+//         if(!opts){
+//             return h(tag,{slot:slotname},[])
+//         }else if(opts.constructor !== Object){
+//             return h(tag,{slot:slotname},toCoverData(d,opts))
+//         }
+//     }
+//     if(tag){
+//         // console.log("id:",id)
+//         props = (props && props.constructor === Object)?props:null
+//         const p = {}
+//         events = (events && events.constructor === Object)?events:null
+//         if(events){
+//             // 事件处理
+//             let e ={}
+//             for (const key in events) {
+//                 e[key] = (e)=>console.log("input",e)
+//             }
+//             p['on'] = e
+//         }
+//         if(props){
+//             let _props = {}
+//             for (const key in props) {            // 处理props                
+//                 let v = toCoverData(d,props[key])            
+//                 if(key==="v-model"){
+//                     _props['value'] = v
+//                     p['on'] = p['on'] || {}
+//                     let _input =p['on']['input']
+//                     p['on']['input'] = function(value){
+//                         if(typeof _input==="function") _input(value)
+//                         console.log("v-model")
+//                         c.datas[v] = value
+//                         // c.$emit('input',value)
+//                     }
+//                     continue
+//                 }
+//                 _props[key] =v
+//             }
+//             p['props'] = _props
+//         }
+//         solts = (solts && solts.constructor === Object)?solts:null        
+//         if(slotname) p['slot'] = slotname  // 添加slot名称
+//         if(solts){
+//             // 插槽处理
+//             let child = []
+//             for (const key in solts) {
+//                 if(!Array.isArray(solts[key])) continue
+//                 for (let i = 0; i < solts[key].length; i++) {
+//                     const _opts = solts[key][i];
+//                     if(key=="default"){
+//                         child.push(toCreateVnode(c,d,h,_opts))
+//                     }else{
+//                         child.push(toCreateVnode(c,d,h,_opts,key))
+//                     }
+//                 }
+//             }
+//             // console.log("子元素",child)
+//             return h(tag,p,child)
+//         }else{
+//             return h(tag,p)
+//         }
+//     }else{
+//         return toCoverData(d,opts)
+//     }
+// }
+// const opts = {
 //     id:'0',
 //     tag:"div",
 //     props:{name:"ikale", age:18},
@@ -8326,6 +8444,8 @@ function toCreateVnode(d, h, opts) {
 //         ]
 //     }
 // }
+;// CONCATENATED MODULE: ./src/packages/py-app/zero.js
+
 
 
 
@@ -8334,13 +8454,21 @@ function toCreateVnode(d, h, opts) {
 
 /* harmony default export */ var zero = ({
   name: 'py-zero',
+  data: function data() {
+    return {
+      templates: "<span>2323232</span>"
+    };
+  },
   created: function created() {
+    var _this = this;
+
     var useUistore = uistore();
     var useDataStore = dataStore();
     var xx = 0;
     setInterval(function () {
       xx++;
       useDataStore.datas.__$1$ = "ikale-".concat(xx);
+      _this.datas.__$0$++;
     }, 1000);
 
     if (this.wsrui) {
@@ -8364,11 +8492,21 @@ function toCreateVnode(d, h, opts) {
   },
   computed: _objectSpread2(_objectSpread2({}, mapState(uistore, ['uidatas', 'wsrui'])), mapState(dataStore, ['datas'])),
   render: function render(h) {
-    // console.log("触发渲染更新",this.datas)
-    var v = toCreateVnode(this.datas, h, this.uidatas); // console.log("vnode",v)
+    var Vue = getVue();
+    var template = handlerTag(this.uidatas);
+    console.log(template);
+    var v = Vue.extend({
+      template: template,
+      computed: _objectSpread2(_objectSpread2({}, mapState(uistore, ['uidatas', 'wsrui'])), mapState(dataStore, ['datas']))
+    });
+    return h(v);
+  } // render(h) {
+  //     // console.log("触发渲染更新",this.datas)
+  //     const v =toCreateVnode(this,this.datas,h,this.uidatas)
+  //     // console.log("vnode",v)
+  //     return v
+  // },
 
-    return v;
-  }
 });
 ;// CONCATENATED MODULE: ./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib/index.js??clonedRuleSet-80[0].rules[0].use[1]!./node_modules/@vue/vue-loader-v15/lib/index.js??vue-loader-options!./src/packages/py-app/index.vue?vue&type=script&lang=js&
 
@@ -8379,6 +8517,14 @@ function toCreateVnode(d, h, opts) {
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+
 
 
 
@@ -8392,18 +8538,10 @@ function toCreateVnode(d, h, opts) {
   },
   data: function data() {
     return {
-      opts: {
-        tag: 'div',
-        props: {
-          'class': 'abc'
-        },
-        solts: {
-          default: ['没有数据']
-        }
-      }
+      message1: "abc"
     };
   },
-  computed: _objectSpread2({}, mapState(uistore, ['uidatas'])),
+  computed: _objectSpread2(_objectSpread2({}, mapState(uistore, ['uidatas'])), mapState(dataStore, ['datas'])),
   created: function created() {
     var _this = this;
 
@@ -8772,13 +8910,18 @@ var packages_install = function install(Vue) {
 // }
 
 
+var _Vue = null;
 var init = function init(Vue) {
+  _Vue = Vue;
   packages_install(Vue);
   Vue.use(PiniaVuePlugin);
   var pinia = createPinia();
   return {
     pinia: pinia
   };
+};
+var getVue = function getVue() {
+  return _Vue;
 };
 var packages_version = '0.0.1';
 
@@ -8799,6 +8942,43 @@ var getRawdata = function getRawdata() {
   var useDataStore = dataStore();
   return useDataStore.datas;
 };
+
+var opts = {
+  tag: "div",
+  props: {
+    name: "__$ikale$",
+    ":age": 18
+  },
+  events: {
+    "click": "onclick"
+  },
+  slotValue: '',
+  solts: {
+    default: ["这是一段文本", {
+      tag: "div",
+      props: {
+        name: "chao",
+        ":age": 25
+      },
+      events: {
+        "click": "onclick"
+      },
+      slotValue: ''
+    }],
+    append: [{
+      tag: "div",
+      props: {
+        name: "chao",
+        ":age": 25
+      },
+      events: {
+        "click": "onclick"
+      },
+      slotValue: '{name,attr}'
+    }]
+  }
+};
+console.log(handlerTag(opts));
 ;// CONCATENATED MODULE: ./node_modules/@vue/cli-service/lib/commands/build/entry-lib-no-default.js
 
 
