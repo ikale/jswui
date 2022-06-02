@@ -31,24 +31,24 @@ new Vue({
     'id':'0',
     'tag':"div",
     'props':{'class':"__$1$", 'age':"__$0$"},
-    'events':{"click":"onclick"},
+    # 'events':{"click":"onclick"},
     'solts':{
-            'default':[
-                "插槽内容->",
-                "__$1$",
-                {
-                    'id':'1',
-                    'tag':"v-text-field",
-                    'props':{'class':"__$3$", 'age':"__$0$"},
-                    'events':{"input":"input"},
-                    'solts':{
-                        'append':['我不知道'],
-                        'prepend':["爱是什么","__$1$"]
-                    }
+        'default':[
+            "输入点能量吧->",
+            "__$0$",
+            {
+                'id':'1',
+                'tag':"v-text-field",
+                'props':{'class':"__$3$", 'v-model':"__$0$"},
+                'events':{"input":"oninput"},
+                'solts':{
+                    'append':['我不知道'],
+                    'prepend':["爱是什么","__$0$"]
                 }
-            ]
-        }
+            }
+        ]
     }
+}
 
 ```
 ### 响应式数据格式
