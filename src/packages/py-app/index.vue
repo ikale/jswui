@@ -1,12 +1,13 @@
 <template>
     <v-app>
         <py-zero></py-zero>
-        <v-text-field
-            :value="123456"
+        <!-- <v-text-field
+            v-model="datas.__$0$"
             label="Regular"
             solo
             clearable
           ></v-text-field>
+          {{datas.__$0$}} -->
     </v-app>
 </template>
 
@@ -15,7 +16,7 @@
 import PyZero from './zero'
 import { mapState} from 'pinia'
 import uistore from '../store/uistore.js'
-
+import dataStore from '../store/dataStore.js'
 
 export default {
   name: 'py-app',
@@ -29,7 +30,8 @@ export default {
     message1:"abc"
   }),
   computed: {
-    ...mapState(uistore,['uidatas'])
+    ...mapState(uistore,['uidatas']),
+    ...mapState(dataStore,['datas'])
   },
   created() {
     const useUistore = uistore()

@@ -15,13 +15,21 @@ const install = function(Vue){
 //   install(window.Vue);  
 // }
 
+var _Vue = null
+
 
 export const init= function(Vue){
+  _Vue = Vue
   install(Vue)
   Vue.use(PiniaVuePlugin)  
   const pinia = createPinia()
   return {pinia}
 }
+
+export const getVue = function(){
+  return _Vue
+}
+
 
 export const version = '0.0.1'
 
@@ -50,3 +58,37 @@ export const getRawdata = function(){
   const useDataStore = dataStore()
   return useDataStore.datas
 }
+
+
+import createTemplate from "./utils/handlerTag.js"
+
+
+let opts = {
+    tag:"div",
+    props:{name:"__$ikale$", ":age":18},
+    events:{"click":"onclick"},
+    slotValue:'',
+    
+    solts:{
+        default:[
+             "这是一段文本",
+            {
+                tag:"div",
+                props:{name:"chao", ":age":25},
+                events:{"click":"onclick"},
+                slotValue:'',
+            }
+        ],
+         append:[
+             {
+                 tag:"div",
+                 props:{name:"chao", ":age":25},
+                 events:{"click":"onclick"},
+                 slotValue:'{name,attr}'
+             },
+         ]
+    }
+}
+  
+  console.log(createTemplate(opts))
+  
