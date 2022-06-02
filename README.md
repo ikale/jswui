@@ -83,14 +83,19 @@ pywui.getRawdata()
 
 
 
-# 服务器
+# 运行开发项目
 
-# 进入开发模式
+### 项目初始化
+```
+npm install
+```
+
+### 进入开发模式
 ```
 npm run serve
 ```
 
-# 打包
+### 打包
 ```
 npm run package
 ```
