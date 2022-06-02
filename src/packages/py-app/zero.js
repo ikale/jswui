@@ -65,7 +65,7 @@ export default {
       },
     render(h) {
         const Vue = getVue()
-        const {template,eventFnc} = InitTemplate(this.uidatas)
+        const {template,eventFnc} = InitTemplate(this.$wsSender,this.uidatas)
         console.log(template,eventFnc)
         
         const opts = {

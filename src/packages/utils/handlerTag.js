@@ -1,7 +1,13 @@
 
 
-function getEvent(eventName){
+function getEvent(wsSender,eventName){
     return function(e){
+        wsSender({
+            type:'uiEvent',
+            msg:{
+                eventName,
+            }
+        })
         console.log("触发事件",eventName,e)
     }
 }
@@ -50,13 +56,14 @@ function createEvent(container,events){
     for (const key in events) {
         const eventName = events[key];
         s+=`@${key}='${eventName}' `
-        container['eventFnc'][eventName] = getEvent(eventName)
+        container['eventFnc'][eventName] = getEvent(container.wsSender,eventName)
     }
     return s
 }
 
 
 function createTemplate(container,opts,slotName=null){
+    if(!opts) return ""
     let {tag,props,solts,events,slotValue} = opts
 
     let _slotMark =""
@@ -107,8 +114,9 @@ function createTemplate(container,opts,slotName=null){
 
 
 
-const InitTemplate = function(uidatas){
+const InitTemplate = function(wsSender,uidatas){
     let container = {
+        wsSender,
         eventFnc:{},
         template:""
     }
