@@ -2,7 +2,7 @@
 使用vue2 + vuetify + pinia创建。
 
 
-# l使用
+# 使用
 ```
 // init返回一个对象，里面包含了pinia的实例，解构出pinia实例添加至vue实例中
 pywui.init(Vue)
