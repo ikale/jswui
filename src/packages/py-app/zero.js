@@ -10,7 +10,7 @@ var watchs={}
 function getWatcher(wsSender,id){
     return function(newdata,olddata){
         wsSender({
-            type:"valueUpdate",
+            type:"rawdataUpdate",
             msg:{
                 id,
                 value:newdata
@@ -19,7 +19,6 @@ function getWatcher(wsSender,id){
         console.log(id,newdata,olddata)
     }
 }
-
 
 
 export default {
@@ -45,12 +44,18 @@ export default {
                     const {msg,type} = data
                     console.log('收到信息',data)
                     if(type=="init"){
+                        // 初始化
                         const {uidata,rawdata} = msg
                         useUistore.uidatas = uidata
                         useDataStore.datas = rawdata
                         for (const key in rawdata) {
                             watchs[`datas.${key}`] = getWatcher(wsSender,key)
                         }
+                    }
+                    if(type=="rawdataUpdate"){
+                        // 服务端数据更新
+                        const {id,value} = msg
+                        useDataStore.datas[id] = value
                     }
                 }
             })
