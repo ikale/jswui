@@ -4108,7 +4108,7 @@ var es_object_to_string = __webpack_require__(1539);
 var web_dom_collections_for_each = __webpack_require__(4747);
 // EXTERNAL MODULE: ./node_modules/core-js/modules/es.function.name.js
 var es_function_name = __webpack_require__(8309);
-;// CONCATENATED MODULE: ./node_modules/@vue/vue-loader-v15/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/@vue/vue-loader-v15/lib/index.js??vue-loader-options!./src/packages/py-app/index.vue?vue&type=template&id=496e2cd9&
+;// CONCATENATED MODULE: ./node_modules/@vue/vue-loader-v15/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/@vue/vue-loader-v15/lib/index.js??vue-loader-options!./src/packages/py-app/index.vue?vue&type=template&id=4ca07fc2&
 var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('v-app',[_c('py-zero')],1)}
 var staticRenderFns = []
 
@@ -8197,6 +8197,18 @@ var es_array_concat = __webpack_require__(2222);
 
 
 
+function getEvent(wsSender, eventName) {
+  return function (e) {
+    wsSender({
+      type: 'uiEvent',
+      msg: {
+        eventName: eventName
+      }
+    });
+    console.log("触发事件", eventName, e);
+  };
+}
+
 function toCoverData(v) {
   /**
    * 数据绑定
@@ -8241,20 +8253,22 @@ function createProps(props) {
   return s;
 }
 
-function createEvent(events) {
+function createEvent(container, events) {
   if (!events) return "";
   var s = "";
 
   for (var key in events) {
-    var value = events[key];
-    s += "@".concat(key, "='").concat(value, "' ");
+    var eventName = events[key];
+    s += "@".concat(key, "='").concat(eventName, "' ");
+    container['eventFnc'][eventName] = getEvent(container.wsSender, eventName);
   }
 
   return s;
 }
 
-function createTemplate(opts) {
-  var slotName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+function createTemplate(container, opts) {
+  var slotName = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+  if (!opts) return "";
   var tag = opts.tag,
       props = opts.props,
       solts = opts.solts,
@@ -8282,7 +8296,7 @@ function createTemplate(opts) {
       child = value;
     } else if (Array.isArray(solts)) {
       for (var i = 0; i < solts.length; i++) {
-        child += createTemplate(solts[i]);
+        child += createTemplate(container, solts[i]);
       }
     }
 
@@ -8292,7 +8306,7 @@ function createTemplate(opts) {
 
         if (Array.isArray(arr)) {
           for (var _i = 0; _i < arr.length; _i++) {
-            child += createTemplate(arr[_i], _slotName);
+            child += createTemplate(container, arr[_i], _slotName);
           }
         }
       }
@@ -8300,7 +8314,7 @@ function createTemplate(opts) {
   }
 
   if (tag) {
-    return "<".concat(tag, " ").concat(createProps(props), " ").concat(createEvent(events), " ").concat(_slotMark, ">").concat(child, "</").concat(tag, ">");
+    return "<".concat(tag, " ").concat(createProps(props), " ").concat(createEvent(container, events), " ").concat(_slotMark, ">").concat(child, "</").concat(tag, ">");
   } else {
     if (typeof opts === "string") {
       var _toCoverData3 = toCoverData(opts),
@@ -8315,7 +8329,18 @@ function createTemplate(opts) {
   }
 }
 
-/* harmony default export */ var handlerTag = (createTemplate); // opts = {
+var InitTemplate = function InitTemplate(wsSender, uidatas) {
+  var container = {
+    wsSender: wsSender,
+    eventFnc: {},
+    template: ""
+  };
+  var template = createTemplate(container, uidatas);
+  container.template = template;
+  return container;
+};
+
+/* harmony default export */ var handlerTag = (InitTemplate); // opts = {
 //     tag:"div",
 //     props:{name:"__$ikale$", ":age":18},
 //     events:{"click":"onclick"},
@@ -8452,18 +8477,32 @@ function createTemplate(opts) {
 
 
 
+var watchs = {};
+
+function getWatcher(wsSender, id) {
+  return function (newdata, olddata) {
+    wsSender({
+      type: "rawdataUpdate",
+      msg: {
+        id: id,
+        value: newdata
+      }
+    });
+    console.log(id, newdata, olddata);
+  };
+}
+
 /* harmony default export */ var zero = ({
   name: 'py-zero',
-  data: function data() {
-    return {
-      templates: "<span>2323232</span>"
-    };
-  },
   created: function created() {
     var _this = this;
 
     var useUistore = uistore();
-    var useDataStore = dataStore();
+    var useDataStore = dataStore(); // 订阅状态变化
+    // useDataStore.$subscribe((mutation, state) => {
+    //     console.log("状态变化：",mutation, state)
+    // })
+
     var xx = 0;
     setInterval(function () {
       xx++;
@@ -8472,20 +8511,33 @@ function createTemplate(opts) {
     }, 1000);
 
     if (this.wsrui) {
-      this.$wsSender = useWebsocket(this.wsrui, {
+      var wsSender = useWebsocket(this.wsrui, {
         handleMessageEvent: function handleMessageEvent(data) {
           var msg = data.msg,
               type = data.type;
           console.log('收到信息', data);
 
           if (type == "init") {
+            // 初始化
             var uidata = msg.uidata,
                 rawdata = msg.rawdata;
             useUistore.uidatas = uidata;
             useDataStore.datas = rawdata;
+
+            for (var key in rawdata) {
+              watchs["datas.".concat(key)] = getWatcher(wsSender, key);
+            }
+          }
+
+          if (type == "rawdataUpdate") {
+            // 服务端数据更新
+            var id = msg.id,
+                value = msg.value;
+            useDataStore.datas[id] = value;
           }
         }
       });
+      this.$wsSender = wsSender;
     } else {
       console.warn("Please in \"<py-app uri='your ws addr'>\" websocket address specified in the tag!");
     }
@@ -8493,13 +8545,19 @@ function createTemplate(opts) {
   computed: _objectSpread2(_objectSpread2({}, mapState(uistore, ['uidatas', 'wsrui'])), mapState(dataStore, ['datas'])),
   render: function render(h) {
     var Vue = getVue();
-    var template = handlerTag(this.uidatas);
-    console.log(template);
-    var v = Vue.extend({
+
+    var _InitTemplate = handlerTag(this.$wsSender, this.uidatas),
+        template = _InitTemplate.template,
+        eventFnc = _InitTemplate.eventFnc;
+
+    console.log(template, eventFnc);
+    var opts = {
       template: template,
-      computed: _objectSpread2(_objectSpread2({}, mapState(uistore, ['uidatas', 'wsrui'])), mapState(dataStore, ['datas']))
-    });
-    return h(v);
+      computed: _objectSpread2(_objectSpread2({}, mapState(uistore, ['uidatas'])), mapState(dataStore, ['datas'])),
+      watch: watchs,
+      methods: eventFnc
+    };
+    return h(Vue.extend(opts));
   } // render(h) {
   //     // console.log("触发渲染更新",this.datas)
   //     const v =toCreateVnode(this,this.datas,h,this.uidatas)
@@ -8541,7 +8599,7 @@ function createTemplate(opts) {
       message1: "abc"
     };
   },
-  computed: _objectSpread2(_objectSpread2({}, mapState(uistore, ['uidatas'])), mapState(dataStore, ['datas'])),
+  computed: _objectSpread2(_objectSpread2({}, mapState(uistore, ['uidatas'])), mapState(dataStore, ['__$666$'])),
   created: function created() {
     var _this = this;
 
@@ -8978,7 +9036,7 @@ var opts = {
     }]
   }
 };
-console.log(handlerTag(opts));
+console.log("index.js", handlerTag(opts));
 ;// CONCATENATED MODULE: ./node_modules/@vue/cli-service/lib/commands/build/entry-lib-no-default.js
 
 
