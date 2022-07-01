@@ -8495,20 +8495,8 @@ function getWatcher(wsSender, id) {
 /* harmony default export */ var zero = ({
   name: 'py-zero',
   created: function created() {
-    var _this = this;
-
     var useUistore = uistore();
-    var useDataStore = dataStore(); // 订阅状态变化
-    // useDataStore.$subscribe((mutation, state) => {
-    //     console.log("状态变化：",mutation, state)
-    // })
-
-    var xx = 0;
-    setInterval(function () {
-      xx++;
-      useDataStore.datas.__$1$ = "ikale-".concat(xx);
-      _this.datas.__$0$++;
-    }, 1000);
+    var useDataStore = dataStore();
 
     if (this.wsrui) {
       var wsSender = useWebsocket(this.wsrui, {

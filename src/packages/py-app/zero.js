@@ -26,18 +26,6 @@ export default {
     created() {        
         const useUistore = uistore()
         const useDataStore = dataStore()
-        // 订阅状态变化
-        // useDataStore.$subscribe((mutation, state) => {
-        //     console.log("状态变化：",mutation, state)
-        // })
-
-        let xx = 0
-        setInterval(()=>{
-            xx++
-            useDataStore.datas.__$1$=`ikale-${xx}`
-            this.datas.__$0$++
-        },1000)
-
         if(this.wsrui){
             const wsSender = useWebsocket(this.wsrui,{
                 handleMessageEvent(data){

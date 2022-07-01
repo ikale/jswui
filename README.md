@@ -86,29 +86,7 @@ pywui.getRawdata()
 
 # 与ws服务器通信
 通过连接ws来让服务器控制ui动态生成
-## 本地向服务端发送的payload
-#### rawdataUpdate
-```
-//payload
-{
-    type:"rawdataUpdate",
-    msg:{
-        id,
-        value:newdata
-    }
-}
-```
 
-#### uiEvent
-```
-//payload
-{
-    type:'uiEvent',
-    msg:{
-        eventName,
-    }
-}
-```
 ## 服务端给本地发送的payload
 #### init
 ```
@@ -134,6 +112,29 @@ pywui.getRawdata()
 }
 ```
 
+## 本地向服务端发送的payload
+#### rawdataUpdate
+```
+//payload
+{
+    type:"rawdataUpdate",
+    msg:{
+        id,
+        value:newdata
+    }
+}
+```
+
+#### uiEvent
+```
+//payload
+{
+    type:'uiEvent',
+    msg:{
+        eventName,
+    }
+}
+```
 
 
 # 开发模式
